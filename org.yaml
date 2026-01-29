@@ -2,6 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Group
 metadata:
   name: team-name
+  namespace: default
   description: Time de engenharia responsável pelo Auth Service
 spec:
   type: team
