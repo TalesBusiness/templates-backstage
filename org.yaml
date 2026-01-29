@@ -1,8 +1,27 @@
+---
 apiVersion: backstage.io/v1alpha1
 kind: Group
 metadata:
   name: team-devops
-  description: Time de Engenharia de Plataforma e Cloud
+  description: Grupo Pessoal de DevOps
+spec:
+  type: team
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-engenharia
+  description: Grupo Pessoal de Engenharia
+spec:
+  type: team
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-gerencia
+  description: Grupo Pessoal de Gerência
 spec:
   type: team
   children: []
@@ -10,6 +29,6 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: User
 metadata:
-  name: talescv
+  name: tales-andre
 spec:
-  memberOf: [team-devops]
+  memberOf: [team-devops, team-engenharia, team-gerencia]

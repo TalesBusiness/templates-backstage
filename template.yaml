@@ -1,0 +1,56 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: s3-bucket-pessoal-aprovacao
+  title: AWS S3 com Aprovação Interna
+  description: Fluxo de teste com travas para DevOps, Engenharia e Gerência.
+spec:
+  owner: team-devops
+  type: service
+
+  parameters:
+    - title: Configurações
+      required: [name]
+      properties:
+        name:
+          title: Nome do Bucket
+          type: string
+
+  steps:
+    - id: aprovacao-devops
+      name: Aguardando Aprovação DevOps
+      action: debug:log
+      input:
+        message: "Passo validado pelo DevOps"
+      backstage:permissions:
+        tags: [aprovacao-devops]
+
+    - id: aprovacao-engenharia
+      name: Aguardando Aprovação Engenharia
+      action: debug:log
+      input:
+        message: "Passo validado pela Engenharia"
+      backstage:permissions:
+        tags: [aprovacao-engenharia]
+
+    - id: aprovacao-gerencia
+      name: Aguardando Aprovação Gerência
+      action: debug:log
+      input:
+        message: "Passo validado pela Gerência"
+      backstage:permissions:
+        tags: [aprovacao-gerencia]
+
+    - id: fetch-base
+      name: Gerar Arquivos
+      action: fetch:template
+      input:
+        url: ./content
+        values:
+          name: ${{ parameters.name }}
+
+    - id: publish
+      name: Publicar no GitHub
+      action: publish:github
+      input:
+        repoUrl: github.com?repo=infra-pessoal&owner=tales-andre
