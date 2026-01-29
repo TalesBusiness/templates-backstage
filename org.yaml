@@ -11,6 +11,6 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: User
 metadata:
-  name: talescv # O seu usuário
+  name: talescv
 spec:
   memberOf: [team-name]

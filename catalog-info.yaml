@@ -1,18 +1,18 @@
-apiVersion: backstage.io/v1beta1
+apiVersion: backstage.io/v1alpha1 # Atualizado para v1alpha1 (padrão estável para Component)
 kind: Component
 metadata:
-    name: auth-service
-    description: Authentication service
-    tags:
-        - authentication
-        - security
-        - javascript
-    links:
-        - url: https://google.com
-          title: Admin Dashboard
-          icon: dashboard
-          type: admin-dashboard
+  name: auth-service
+  description: Authentication service
+  tags:
+    - authentication
+    - security
+    - javascript
+  links:
+    - url: https://google.com
+      title: Admin Dashboard
+      icon: dashboard
+      type: admin-dashboard
 spec:
-    type: service
-    lifecycle: production
-    owner: group:default/team-name
+  type: service
+  lifecycle: production
+  owner: team-name # Simplificado para garantir o vínculo com o Group acima
