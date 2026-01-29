@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-name
+  description: Time de engenharia responsável pelo Auth Service
+spec:
+  type: team
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: talescv # O seu usuário
+spec:
+  memberOf: [team-name]
