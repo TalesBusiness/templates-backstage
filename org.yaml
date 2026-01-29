@@ -1,16 +1,17 @@
-apiVersion: backstage.io/v1alpha1
-kind: Group
-metadata:
-  name: team-name
-  namespace: default
-  description: Time de engenharia responsável pelo Auth Service
-spec:
-  type: team
-  children: []
 ---
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-user
 apiVersion: backstage.io/v1alpha1
 kind: User
 metadata:
-  name: talescv
+  name: guest
 spec:
-  memberOf: [team-name]
+  memberOf: [guests]
+---
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-group
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: guests
+spec:
+  type: team
+  children: []
