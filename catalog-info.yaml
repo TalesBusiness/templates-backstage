@@ -15,4 +15,4 @@ metadata:
 spec:
   type: service
   lifecycle: production
-  owner: team-name # Simplificado para garantir o vínculo com o Group acima
+  owner: guest
