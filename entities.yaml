@@ -3,6 +3,17 @@ kind: Component
 metadata:
   name: shopping-cart
 spec:
+  dependsOn:
+    - component: inventory
   type: website
+  lifecycle: production
+  owner: ecommerce
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: inventory
+spec:
+  type: service
   lifecycle: production
   owner: ecommerce
