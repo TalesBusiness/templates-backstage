@@ -31,7 +31,7 @@ kind: User
 metadata:
   name: tales-andre
 spec:
-  memberOf: [team-devops, team-engenharia, team-gerencia]
+  memberOf: [team-devops, team-engenharia, team-gerencia, ecommerce]
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Group
