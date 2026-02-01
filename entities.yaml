@@ -15,6 +15,8 @@ kind: Component
 metadata:
   name: inventory
 spec:
+  dependsOn:
+    - resource:inventory-db
   type: service
   lifecycle: production
   owner: ecommerce
@@ -37,3 +39,13 @@ metadata:
   description: Everything about domain-name
 spec:
   owner: group:ecommerce
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: inventory-db  
+  description: Description of resource-name
+spec:
+  type: database
+  owner: group:ecommerce
+  system: purchasing
