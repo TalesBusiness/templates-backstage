@@ -8,6 +8,7 @@ spec:
   type: website
   lifecycle: production
   owner: user:tales-andre
+  system: purchasing
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Component
@@ -17,6 +18,7 @@ spec:
   type: service
   lifecycle: production
   owner: ecommerce
+  system: purchasing
 ---
 
 apiVersion: backstage.io/v1alpha1
@@ -26,6 +28,3 @@ metadata:
   description: Description of system-name
 spec:
   owner: group:ecommerce
-  components:
-    - component:shopping-cart
-    - component:inventory
