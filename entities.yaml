@@ -18,11 +18,14 @@ spec:
   lifecycle: production
   owner: ecommerce
 ---
+
 apiVersion: backstage.io/v1alpha1
 kind: System
 metadata:
-  name: system-name
+  name: purchasing
   description: Description of system-name
 spec:
-  owner: group:group-name
-  domain: domain-name
+  owner: group:ecommerce
+  components:
+    - component:shopping-cart
+    - component:inventory
