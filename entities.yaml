@@ -28,7 +28,7 @@ metadata:
   description: Description of system-name
 spec:
   owner: group:ecommerce
-  domain-name: shopping-app
+  domain: shopping-app
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Domain
