@@ -7,7 +7,7 @@ spec:
     - component:inventory
   type: website
   lifecycle: production
-  owner: ecommerce
+  owner: user:tales-andre
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Component
@@ -17,3 +17,12 @@ spec:
   type: service
   lifecycle: production
   owner: ecommerce
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: system-name
+  description: Description of system-name
+spec:
+  owner: group:group-name
+  domain: domain-name
