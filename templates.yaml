@@ -8,7 +8,7 @@ metadata:
     - aws
     - s3
   annotations:
-    github.com/project-slug: tales-andre/templates-backstage
+    github.com/project-slug: tales-andre/infra-pessoal
 spec:
   owner: team-devops
   type: service
