@@ -3,11 +3,12 @@ kind: Template
 metadata:
   name: s3-bucket-pessoal-aprovacao
   title: "AWS S3 com PR e Aprovação"
-  description: "Cria um PR para infraestrutura S3. A aprovação ocorre no GitHub."
+  description: "Cria um PR para infraestrutura S3."
   tags:
     - aws
     - s3
-    - infra
+  annotations:
+    github.com/project-slug: tales-andre/templates-backstage
 spec:
   owner: team-devops
   type: service
