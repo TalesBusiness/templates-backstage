@@ -2,55 +2,91 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: s3-bucket-pessoal-aprovacao
-  title: AWS S3 com Aprovação Interna
-  description: Fluxo de teste com travas para DevOps, Engenharia e Gerência.
+  title: AWS S3 com PR e Aprovação
+  description: Cria um PR para infraestrutura S3. A aprovação ocorre no GitHub.
+  tags:
+    - aws
+    - s3
+    - infra
 spec:
   owner: team-devops
   type: service
 
+  # 1. Parâmetros de entrada do usuário
   parameters:
-    - title: Configurações
-      required: [name]
+    - title: Configurações do Bucket
+      required: [name, owner_team]
       properties:
         name:
-          title: Nome do Bucket
+          title: Nome do Bucket S3
           type: string
+          description: Nome único do bucket (ex: meu-bucket-logs)
+          ui:autofocus: true
+        
+        owner_team:
+          title: Time Responsável
+          type: string
+          description: Quem será o dono deste recurso?
+          enum:
+            - team-devops
+            - team-engenharia
+            - team-gerencia
+          default: team-devops
 
+  # 2. O que o Backstage vai fazer
   steps:
-    - id: aprovacao-devops
-      name: Aguardando Aprovação DevOps
-      action: debug:log
-      input:
-        message: "Passo validado pelo DevOps"
-      backstage:permissions:
-        tags: [aprovacao-devops]
-
-    - id: aprovacao-engenharia
-      name: Aguardando Aprovação Engenharia
-      action: debug:log
-      input:
-        message: "Passo validado pela Engenharia"
-      backstage:permissions:
-        tags: [aprovacao-engenharia]
-
-    - id: aprovacao-gerencia
-      name: Aguardando Aprovação Gerência
-      action: debug:log
-      input:
-        message: "Passo validado pela Gerência"
-      backstage:permissions:
-        tags: [aprovacao-gerencia]
-
     - id: fetch-base
-      name: Gerar Arquivos
+      name: Gerar Arquivos Terraform/Infra
       action: fetch:template
       input:
-        url: ./content
+        url: ./content # Certifique-se que esta pasta existe no seu repo com algum arquivo (ex: main.tf)
         values:
           name: ${{ parameters.name }}
+          owner: ${{ parameters.owner_team }}
 
-    - id: publish
-      name: Publicar no GitHub
-      action: publish:github
+    # Simulação de Logs para o usuário ver o progresso
+    - id: log-policy
+      name: Validando Políticas de Segurança
+      action: debug:log
+      input:
+        message: "Aplicando tags de custo e validação para ${{ parameters.owner_team }}"
+
+    # 3. Publicar via Pull Request (Aqui acontece a mágica da aprovação)
+    - id: publish-pr
+      name: Criar Pull Request de Aprovação
+      action: publish:github:pull-request
       input:
         repoUrl: github.com?repo=infra-pessoal&owner=tales-andre
+        branchName: feature/s3-${{ parameters.name }}
+        title: "Infra: Criação do Bucket ${{ parameters.name }}"
+        description: |
+          # Solicitação de Novo Bucket S3
+          
+          **Recurso:** ${{ parameters.name }}
+          **Solicitante:** ${{ user.ref }}
+          **Time:** ${{ parameters.owner_team }}
+
+          ## Aprovações Necessárias
+          Este PR requer aprovação dos seguintes grupos antes do merge:
+          - [ ] DevOps
+          - [ ] Engenharia
+        
+        # Opcional: Se quiser forçar reviewers via template (mas o ideal é usar CODEOWNERS no repo)
+        # reviewers: 
+        #   - usuario-do-chefe
+
+    # 4. Registrar no Catálogo (Opcional, só funciona se o arquivo catalog-info.yaml for gerado)
+    # - id: register
+    #   name: Registrar no Backstage
+    #   action: catalog:register
+    #   input:
+    #     repoContentsUrl: ${{ steps['publish-pr'].output.remoteUrl }}
+    #     catalogInfoPath: '/catalog-info.yaml'
+
+  # 5. O que mostrar pro usuário no final
+  output:
+    links:
+      - title: 🚀 Acessar Pull Request para Aprovação
+        url: ${{ steps['publish-pr'].output.remoteUrl }}
+      - title: 📂 Ver Repositório
+        url: https://github.com/tales-andre/infra-pessoal
