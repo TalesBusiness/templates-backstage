@@ -2,8 +2,8 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: s3-bucket-pessoal-aprovacao
-  title: AWS S3 com PR e Aprovação
-  description: Cria um PR para infraestrutura S3. A aprovação ocorre no GitHub.
+  title: "AWS S3 com PR e Aprovação"
+  description: "Cria um PR para infraestrutura S3. A aprovação ocorre no GitHub."
   tags:
     - aws
     - s3
@@ -12,48 +12,44 @@ spec:
   owner: team-devops
   type: service
 
-  # 1. Parâmetros de entrada do usuário
   parameters:
-    - title: Configurações do Bucket
+    - title: "Configurações do Bucket"
       required: [name, owner_team]
       properties:
         name:
-          title: Nome do Bucket S3
+          title: "Nome do Bucket S3"
           type: string
-          description: Nome único do bucket (ex: meu-bucket-logs)
+          description: "Nome único do bucket (ex: meu-bucket-logs)" # ✅ Aspas adicionadas aqui
           ui:autofocus: true
         
         owner_team:
-          title: Time Responsável
+          title: "Time Responsável"
           type: string
-          description: Quem será o dono deste recurso?
+          description: "Quem será o dono deste recurso?"
           enum:
             - team-devops
             - team-engenharia
             - team-gerencia
           default: team-devops
 
-  # 2. O que o Backstage vai fazer
   steps:
     - id: fetch-base
-      name: Gerar Arquivos Terraform/Infra
+      name: Gerar Arquivos Terraform
       action: fetch:template
       input:
-        url: ./content # Certifique-se que esta pasta existe no seu repo com algum arquivo (ex: main.tf)
+        url: ./content 
         values:
           name: ${{ parameters.name }}
           owner: ${{ parameters.owner_team }}
 
-    # Simulação de Logs para o usuário ver o progresso
     - id: log-policy
-      name: Validando Políticas de Segurança
+      name: Validando Políticas
       action: debug:log
       input:
-        message: "Aplicando tags de custo e validação para ${{ parameters.owner_team }}"
+        message: "Aplicando tags para ${{ parameters.owner_team }}"
 
-    # 3. Publicar via Pull Request (Aqui acontece a mágica da aprovação)
     - id: publish-pr
-      name: Criar Pull Request de Aprovação
+      name: Criar Pull Request
       action: publish:github:pull-request
       input:
         repoUrl: github.com?repo=infra-pessoal&owner=tales-andre
@@ -61,21 +57,10 @@ spec:
         title: "Infra: Criação do Bucket ${{ parameters.name }}"
         description: |
           # Solicitação de Novo Bucket S3
-          
           **Recurso:** ${{ parameters.name }}
           **Solicitante:** ${{ user.ref }}
-          **Time:** ${{ parameters.owner_team }}
-
-          ## Aprovações Necessárias
-          Este PR requer aprovação dos seguintes grupos antes do merge:
-          - [ ] DevOps
-          - [ ] Engenharia
         
-        # Opcional: Se quiser forçar reviewers via template (mas o ideal é usar CODEOWNERS no repo)
-        # reviewers: 
-        #   - usuario-do-chefe
-
-    # 4. Registrar no Catálogo (Opcional, só funciona se o arquivo catalog-info.yaml for gerado)
+    # Se quiser registrar automaticamente depois do merge, descomente abaixo:
     # - id: register
     #   name: Registrar no Backstage
     #   action: catalog:register
@@ -83,10 +68,9 @@ spec:
     #     repoContentsUrl: ${{ steps['publish-pr'].output.remoteUrl }}
     #     catalogInfoPath: '/catalog-info.yaml'
 
-  # 5. O que mostrar pro usuário no final
   output:
     links:
-      - title: 🚀 Acessar Pull Request para Aprovação
+      - title: "🚀 Acessar Pull Request"
         url: ${{ steps['publish-pr'].output.remoteUrl }}
-      - title: 📂 Ver Repositório
+      - title: "📂 Ver Repositório"
         url: https://github.com/tales-andre/infra-pessoal
