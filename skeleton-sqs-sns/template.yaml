@@ -17,7 +17,8 @@ spec:
         component_id:
           title: Nome do Recurso
           type: string
-          description: Nome base para a Fila e o Tópico (ex: pagamentos-events)
+          # 👇 CORREÇÃO: Aspas duplas adicionadas por causa do ":" dentro do texto
+          description: "Nome base para a Fila e o Tópico (ex: pagamentos-events)"
           ui:autofocus: true
         region:
           title: Região AWS
@@ -44,7 +45,6 @@ spec:
         repoUrl: github.com?repo=infra-pessoal&owner=TalesBusiness
         branchName: feature/sqs-${{ parameters.component_id }}
         title: "Infra: Criação SQS/SNS ${{ parameters.component_id }}"
-        # 👇 MANTENDO O PADRÃO PARA O SEU DASHBOARD FUNCIONAR
         description: |
           # Solicitação de Provisionamento Pub/Sub
           
