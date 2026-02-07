@@ -1,5 +1,9 @@
+variable "region" {
+  default = "${{ values.region }}"
+}
+
 provider "aws" {
-  region = "${{ values.region }}"
+  region = var.region
 }
 
 resource "aws_sns_topic" "this" {
