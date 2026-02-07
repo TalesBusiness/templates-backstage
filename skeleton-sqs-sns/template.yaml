@@ -38,12 +38,13 @@ spec:
       name: Gerar Arquivos Terraform
       action: fetch:template
       input:
-        # ⚠️ SE O TEMPLATE ESTÁ DENTRO DA PASTA JUNTO COM O MAIN.TF, USE "./"
-        # SE O TEMPLATE ESTÁ NA RAIZ, USE "./skeleton-sqs-sns"
-        url: ./skeleton-sqs-sns 
+        # 🟢 CORREÇÃO CRÍTICA:
+        # Como o template.yaml e o main.tf estão na MESMA pasta, usamos "./"
+        url: ./
         
-        # ✅ ADICIONE ISSO: Cria uma pasta separada para não misturar arquivos
-        targetPath: ./infra/sqs-${{ parameters.component_id }}
+        # 🟢 ORGANIZAÇÃO:
+        # Define onde salvar no repo de destino (infra-pessoal) para não misturar arquivos
+        targetPath: ./sqs-${{ parameters.component_id }}
         
         values:
           component_id: ${{ parameters.component_id }}
