@@ -21,7 +21,7 @@ spec:
         component_id:
           title: "Nome do Recurso"
           type: string
-          description: "Nome base para a Fila e o Tópico (ex: pagamentos-events)" # ✅ Aspas mantidas
+          description: "Nome base para a Fila e o Tópico (ex: pagamentos-events)"
           ui:autofocus: true
         
         region:
@@ -38,7 +38,13 @@ spec:
       name: Gerar Arquivos Terraform
       action: fetch:template
       input:
-        url: ./skeleton-sqs-sns
+        # ⚠️ SE O TEMPLATE ESTÁ DENTRO DA PASTA JUNTO COM O MAIN.TF, USE "./"
+        # SE O TEMPLATE ESTÁ NA RAIZ, USE "./skeleton-sqs-sns"
+        url: ./skeleton-sqs-sns 
+        
+        # ✅ ADICIONE ISSO: Cria uma pasta separada para não misturar arquivos
+        targetPath: ./infra/sqs-${{ parameters.component_id }}
+        
         values:
           component_id: ${{ parameters.component_id }}
           region: ${{ parameters.region }}
@@ -54,7 +60,6 @@ spec:
       action: publish:github:pull-request
       input:
         repoUrl: github.com?repo=infra-pessoal&owner=TalesBusiness
-        
         branchName: feature/sqs-${{ parameters.component_id }}
         title: "Infra: Criação SQS/SNS ${{ parameters.component_id }}"
         description: |
