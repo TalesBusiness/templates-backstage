@@ -53,13 +53,18 @@ spec:
       name: Criar Pull Request
       action: publish:github:pull-request
       input:
-        repoUrl: github.com?repo=infra-pessoal&owner=tales-andre
+        # 🔴 MUDAR DE:
+        # repoUrl: github.com?repo=infra-pessoal&owner=tales-andre
+        
+        # 🟢 PARA:
+        repoUrl: github.com?repo=infra-pessoal&owner=TalesBusiness
+        
         branchName: feature/s3-${{ parameters.name }}
         title: "Infra: Criação do Bucket ${{ parameters.name }}"
-        description: |
-          # Solicitação de Novo Bucket S3
-          **Recurso:** ${{ parameters.name }}
-          **Solicitante:** ${{ user.ref }}
+        description: "PR criado via Backstage Scaffolder para a Org TalesBusiness"
+        labels:
+          - backstage
+          - infra
         
     # Se quiser registrar automaticamente depois do merge, descomente abaixo:
     # - id: register
