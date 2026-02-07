@@ -61,10 +61,10 @@ spec:
         
         branchName: feature/s3-${{ parameters.name }}
         title: "Infra: Criação do Bucket ${{ parameters.name }}"
-        description: "PR criado via Backstage Scaffolder para a Org TalesBusiness"
-        labels:
-          - backstage
-          - infra
+        description: |
+          # Solicitação de Novo Bucket S3
+          **Recurso:** ${{ parameters.name }}
+          **Solicitante:** ${{ user.ref }}
         
     # Se quiser registrar automaticamente depois do merge, descomente abaixo:
     # - id: register
