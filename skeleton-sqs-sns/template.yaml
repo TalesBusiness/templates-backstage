@@ -1,35 +1,41 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: create-sqs-sns
-  title: Criar Fila SQS + Tópico SNS
-  description: Provisiona um padrão Pub/Sub na AWS com SQS subscrito no SNS.
+  name: sqs-sns-pessoal-aprovacao
+  title: "AWS SQS+SNS com PR e Aprovação"
+  description: "Cria um PR para infraestrutura Pub/Sub (SQS/SNS)."
+  tags:
+    - aws
+    - sqs
+    - sns
+  annotations:
+    github.com/project-slug: TalesBusiness/infra-pessoal
 spec:
-  owner: user:default/tales-andre
+  owner: team-devops
   type: service
 
   parameters:
-    - title: Configuração do Recurso
-      required:
-        - component_id
-        - region
+    - title: "Configurações do Recurso"
+      required: [component_id, region]
       properties:
         component_id:
-          title: Nome do Recurso
+          title: "Nome do Recurso"
           type: string
-          description: "Nome base para a Fila e o Tópico (ex: pagamentos-events)"
+          description: "Nome base para a Fila e o Tópico (ex: pagamentos-events)" # ✅ Aspas mantidas
           ui:autofocus: true
+        
         region:
-          title: Região AWS
+          title: "Região AWS"
           type: string
-          default: us-east-1
+          description: "Região onde o recurso será criado"
           enum:
             - us-east-1
             - sa-east-1
+          default: us-east-1
 
   steps:
     - id: fetch-base
-      name: Buscando Skeleton
+      name: Gerar Arquivos Terraform
       action: fetch:template
       input:
         url: ./skeleton-sqs-sns
@@ -37,11 +43,18 @@ spec:
           component_id: ${{ parameters.component_id }}
           region: ${{ parameters.region }}
 
+    - id: log-policy
+      name: Validando Parâmetros
+      action: debug:log
+      input:
+        message: "Iniciando provisionamento de ${{ parameters.component_id }} em ${{ parameters.region }}"
+
     - id: publish-pr
-      name: Abrir Pull Request de Infra
+      name: Criar Pull Request
       action: publish:github:pull-request
       input:
         repoUrl: github.com?repo=infra-pessoal&owner=TalesBusiness
+        
         branchName: feature/sqs-${{ parameters.component_id }}
         title: "Infra: Criação SQS/SNS ${{ parameters.component_id }}"
         description: |
@@ -50,6 +63,11 @@ spec:
           **Recurso:** ${{ parameters.component_id }}
           **Região:** ${{ parameters.region }}
           
-          **Solicitante:** ${{ user.entity }}
-        
-        # 🔴 REMOVIDO AQUI: A action não suporta 'labels'
+          **Solicitante:** @${{ user.entity.metadata.name }}
+
+  output:
+    links:
+      - title: "🚀 Acessar Pull Request"
+        url: ${{ steps['publish-pr'].output.remoteUrl }}
+      - title: "📂 Ver Repositório"
+        url: https://github.com/TalesBusiness/infra-pessoal
