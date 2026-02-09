@@ -8,7 +8,7 @@ metadata:
     - aws
     - s3
   annotations:
-    github.com/project-slug: tales-andre/infra-pessoal
+    github.com/project-slug: TalesBusiness/infra-pessoal
 spec:
   owner: team-devops
   type: service
@@ -20,7 +20,7 @@ spec:
         name:
           title: "Nome do Bucket S3"
           type: string
-          description: "Nome único do bucket (ex: meu-bucket-logs)" # ✅ Aspas adicionadas aqui
+          description: "Nome único do bucket (ex: meu-bucket-logs)"
           ui:autofocus: true
         
         owner_team:
@@ -39,6 +39,8 @@ spec:
       action: fetch:template
       input:
         url: ./content 
+        # IMPORTANTE: Define uma pasta específica para este recurso
+        targetPath: ./s3-${{ parameters.name }}
         values:
           name: ${{ parameters.name }}
           owner: ${{ parameters.owner_team }}
@@ -53,30 +55,19 @@ spec:
       name: Criar Pull Request
       action: publish:github:pull-request
       input:
-        # 🔴 MUDAR DE:
-        # repoUrl: github.com?repo=infra-pessoal&owner=tales-andre
-        
-        # 🟢 PARA:
         repoUrl: github.com?repo=infra-pessoal&owner=TalesBusiness
-        
         branchName: feature/s3-${{ parameters.name }}
         title: "Infra: Criação do Bucket ${{ parameters.name }}"
         description: |
           # Solicitação de Novo Bucket S3
           **Recurso:** ${{ parameters.name }}
           **Solicitante:** ${{ user.ref }}
-        
-    # Se quiser registrar automaticamente depois do merge, descomente abaixo:
-    # - id: register
-    #   name: Registrar no Backstage
-    #   action: catalog:register
-    #   input:
-    #     repoContentsUrl: ${{ steps['publish-pr'].output.remoteUrl }}
-    #     catalogInfoPath: '/catalog-info.yaml'
-
-  output:
+          
+          ---
+          🤖 **Metadados de Automação**
+          output:
     links:
       - title: "🚀 Acessar Pull Request"
         url: ${{ steps['publish-pr'].output.remoteUrl }}
       - title: "📂 Ver Repositório"
-        url: https://github.com/tales-andre/infra-pessoal
+        url: https://github.com/TalesBusiness/infra-pessoal
