@@ -14,7 +14,7 @@ import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import SupportIcon from '@material-ui/icons/HelpOutline';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 
-// Import do seu componente de PRs (mesma pasta)
+// Import do seu componente de PRs
 import { MyPullRequestsCard } from './MyPullRequestsCard';
 
 const useStyles = makeStyles((theme) => ({
@@ -80,6 +80,7 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.text.secondary,
     fontSize: '0.95rem',
     lineHeight: 1.6,
+    flexGrow: 1, // Garante que o conteúdo ocupe o espaço
   },
 
   // Estilos para Atalhos Rápidos
@@ -209,7 +210,7 @@ export const HomePage = () => {
 
           <Grid container spacing={4}>
             
-            {/* 🟢 COLUNA ESQUERDA (PRINCIPAL) */}
+            {/* 🟢 COLUNA ESQUERDA (PRINCIPAL) - 2/3 da tela */}
             <Grid item xs={12} md={8}>
               <Grid container spacing={4} direction="column">
                 
@@ -246,7 +247,7 @@ export const HomePage = () => {
             </Grid>
 
 
-            {/* 🔵 COLUNA DIREITA (LATERAL) */}
+            {/* 🔵 COLUNA DIREITA (LATERAL) - 1/3 da tela */}
             <Grid item xs={12} md={4}>
               <Grid container spacing={4} direction="column">
 
@@ -279,11 +280,13 @@ export const HomePage = () => {
                       <p>
                         Precisa de permissões ou encontrou um problema?
                       </p>
+                      
+                      {/* CORREÇÃO APLICADA AQUI: component={Link as any} */}
                       <Button 
                         variant="outlined" 
                         color="primary" 
                         endIcon={<ArrowForwardIcon />}
-                        component={Link}
+                        component={Link as any}
                         to="/settings"
                         style={{ width: '100%', marginTop: 8 }}
                       >
