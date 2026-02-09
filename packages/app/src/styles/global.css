@@ -1,0 +1,135 @@
+/* =========================================================
+   Backstage Table (MTable) – modern/tech
+   Safe selectors (no hash numbers)
+   Scopes EVERYTHING under BackstageTable-root to avoid leaking
+   ========================================================= */
+
+/* Table "card" feel */
+[class*="BackstageTable-root"] {
+  border-radius: 18px !important;
+}
+
+/* Paper container (the card that was "covering" your background) */
+[class*="BackstageTable-root"] .MuiPaper-root {
+  border-radius: 18px !important;
+  border: 1px solid rgba(148, 163, 184, 0.14) !important;
+  background-image: none !important;
+  overflow: hidden !important;
+
+  /* IMPORTANT: ensure the table card has the right bg */
+  background-color: var(--bs-table-paper, transparent) !important;
+}
+
+/* Toolbar (title/search area) */
+[class*="BackstageTableToolbar-root"],
+.ForwardRef\(MTableToolbarRef\)-root- * {
+  background: transparent !important;
+}
+
+/* Toolbar title "All Components (4)" */
+[class*="BackstageTableToolbar-title"] .MuiTypography-h5,
+.ForwardRef\(MTableToolbarRef\)-title- * .MuiTypography-h5 {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* Search box in toolbar */
+[class*="BackstageTableToolbar-searchField"] .MuiInputBase-root {
+  border-radius: 12px !important;
+  padding: 6px 10px !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  background: rgba(148, 163, 184, 0.05) !important;
+}
+[class*="BackstageTableToolbar-searchField"] .MuiInputBase-input {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* Table header row */
+[class*="BackstageTableHeader-header"] {
+  text-transform: none !important;
+  letter-spacing: 0.08em !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  opacity: 0.95 !important;
+}
+
+/* Make sort label + icon readable */
+[class*="BackstageTable-root"] .MuiTableSortLabel-root,
+[class*="BackstageTable-root"] .MuiTableSortLabel-root:hover,
+[class*="BackstageTable-root"] .MuiTableSortLabel-root.MuiTableSortLabel-active {
+  color: inherit !important;
+}
+[class*="BackstageTable-root"] .MuiTableSortLabel-icon {
+  opacity: 0.9 !important;
+}
+
+/* Rounded corners feel for the table itself */
+[class*="BackstageTable-root"] .MuiTable-root {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: transparent !important;
+}
+
+/* Header cells (scoped: no global th) */
+[class*="BackstageTable-root"] .MuiTableHead-root th {
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.20) !important;
+}
+
+/* Body cells (scoped: no global td) */
+[class*="BackstageTable-root"] .MuiTableBody-root td {
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+  font-size: 14px !important;
+  font-weight: 650 !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
+  background: transparent !important;
+}
+
+/* Zebra + hover (scoped) */
+[class*="BackstageTable-root"] .MuiTableBody-root tr:nth-of-type(even) td {
+  background: rgba(148, 163, 184, 0.035) !important;
+}
+[class*="BackstageTable-root"] .MuiTableBody-root tr:hover td {
+  background: rgba(96, 165, 250, 0.10) !important;
+}
+
+/* Links in Name/System/Owner */
+[class*="BackstageTable-root"] .MuiTableBody-root td a.MuiLink-root {
+  font-weight: 850 !important;
+  text-decoration: none !important;
+}
+[class*="BackstageTable-root"] .MuiTableBody-root td a.MuiLink-root:hover {
+  text-decoration: underline !important;
+}
+
+/* Chips (tags) */
+[class*="BackstageTable-root"] .MuiTableBody-root .MuiChip-root {
+  height: 24px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  background: rgba(148, 163, 184, 0.06) !important;
+}
+[class*="BackstageTable-root"] .MuiTableBody-root .MuiChip-label {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+/* Actions column icons */
+[class*="BackstageTable-root"] .MuiTableBody-root td:last-child button {
+  border-radius: 10px !important;
+  padding: 6px !important;
+}
+[class*="BackstageTable-root"] .MuiTableBody-root td:last-child button:hover {
+  background: rgba(148, 163, 184, 0.10) !important;
+}
+
+/* Optional: soften overall table text */
+[class*="BackstageTable-root"] .MuiTypography-root {
+  letter-spacing: -0.005em !important;
+}

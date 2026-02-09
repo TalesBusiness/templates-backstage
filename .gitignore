@@ -1,0 +1,4 @@
+# Crie o arquivo e adicione a regra
+echo "node_modules/" >> .gitignore
+echo "dist/" >> .gitignore
+echo "*.log" >> .gitignore
