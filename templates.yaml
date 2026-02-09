@@ -2,55 +2,71 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: s3-bucket-pessoal-aprovacao
-  title: AWS S3 com Aprovação Interna
-  description: Fluxo de teste com travas para DevOps, Engenharia e Gerência.
+  title: "AWS S3 com PR e Aprovação"
+  description: "Cria um PR para infraestrutura S3."
+  tags:
+    - aws
+    - s3
+  annotations:
+    github.com/project-slug: TalesBusiness/infra-pessoal
 spec:
   owner: team-devops
   type: service
 
   parameters:
-    - title: Configurações
-      required: [name]
+    - title: "Configurações do Bucket"
+      required: [name, owner_team]
       properties:
         name:
-          title: Nome do Bucket
+          title: "Nome do Bucket S3"
           type: string
+          description: "Nome único do bucket (ex: meu-bucket-logs)"
+          ui:autofocus: true
+        
+        owner_team:
+          title: "Time Responsável"
+          type: string
+          description: "Quem será o dono deste recurso?"
+          enum:
+            - team-devops
+            - team-engenharia
+            - team-gerencia
+          default: team-devops
 
   steps:
-    - id: aprovacao-devops
-      name: Aguardando Aprovação DevOps
-      action: debug:log
-      input:
-        message: "Passo validado pelo DevOps"
-      backstage:permissions:
-        tags: [aprovacao-devops]
-
-    - id: aprovacao-engenharia
-      name: Aguardando Aprovação Engenharia
-      action: debug:log
-      input:
-        message: "Passo validado pela Engenharia"
-      backstage:permissions:
-        tags: [aprovacao-engenharia]
-
-    - id: aprovacao-gerencia
-      name: Aguardando Aprovação Gerência
-      action: debug:log
-      input:
-        message: "Passo validado pela Gerência"
-      backstage:permissions:
-        tags: [aprovacao-gerencia]
-
     - id: fetch-base
-      name: Gerar Arquivos
+      name: Gerar Arquivos Terraform
       action: fetch:template
       input:
-        url: ./content
+        url: ./content 
+        targetPath: ./s3-${{ parameters.name }}
         values:
           name: ${{ parameters.name }}
+          owner: ${{ parameters.owner_team }}
 
-    - id: publish
-      name: Publicar no GitHub
-      action: publish:github
+    - id: log-policy
+      name: Validando Políticas
+      action: debug:log
       input:
-        repoUrl: github.com?repo=infra-pessoal&owner=tales-andre
+        message: "Aplicando tags para ${{ parameters.owner_team }}"
+
+    - id: publish-pr
+      name: Criar Pull Request
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com?repo=infra-pessoal&owner=TalesBusiness
+        branchName: feature/s3-${{ parameters.name }}
+        title: "Infra: Criação do Bucket ${{ parameters.name }}"
+        description: |
+          # Solicitação de Novo Bucket S3
+          **Recurso:** ${{ parameters.name }}
+          **Solicitante:** ${{ user.ref }}
+          
+          ---
+          🤖 **Metadados de Automação**
+          output:
+    links:
+      - title: "🚀 Acessar Pull Request"
+        url: ${{ steps['publish-pr'].output.remoteUrl }}
+      - title: "📂 Ver Repositório"
+        url: https://github.com/TalesBusiness/infra-pessoal
