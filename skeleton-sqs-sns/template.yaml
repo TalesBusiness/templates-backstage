@@ -39,7 +39,6 @@ spec:
       action: fetch:template
       input:
         url: ./
-        # Define onde salvar no repo de destino
         targetPath: ./sqs-${{ parameters.component_id }}
         values:
           component_id: ${{ parameters.component_id }}
@@ -67,8 +66,7 @@ spec:
 
           ---
           🤖 **Metadados de Automação**
-          # CORREÇÃO: 'output' deve estar alinhado verticalmente com 'steps'
-  output:
+          output:
     links:
       - title: "🚀 Acessar Pull Request"
         url: ${{ steps['publish-pr'].output.remoteUrl }}
