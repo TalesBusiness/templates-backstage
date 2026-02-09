@@ -48,7 +48,9 @@ export const MyPullRequestsCard = () => {
   const [prs, setPrs] = useState<PR[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [backstageUser, setBackstageUser] = useState<string | null>(null);
+
+  // CORREÇÃO: Removemos o useState do backstageUser pois ele não estava sendo lido no render,
+  // causando erro de variável não utilizada (TS6133). Usaremos apenas a variável local currentUser.
 
   useEffect(() => {
     const fetchUserAndPRs = async () => {
@@ -56,25 +58,24 @@ export const MyPullRequestsCard = () => {
         const identity = await identityApi.getBackstageIdentity();
         const userEntityRef = identity.userEntityRef; 
         
+        // Tenta pegar o user do "user:default/tales" -> "tales"
         let currentUser = userEntityRef.split('/')[1];
         
         try {
+            // Tenta pegar o nome display do catálogo se possível
             const userEntity = await catalogApi.getEntityByRef(userEntityRef);
             if (userEntity) {
                 currentUser = userEntity.metadata.name;
             }
         } catch (err) {
-            // Fallback
+            // Fallback para o ID extraído do ref
         }
-
-        setBackstageUser(currentUser);
 
         const backendUrl = config.getString('backend.baseUrl');
 
         const searchTerm = `Solicitante: @${currentUser}`;
         
-        // 🟢 ALTERAÇÃO 1: Removido "state:open" para trazer histórico completo
-        // Ordenamos por updated (desc) para os mais recentes ficarem no topo
+        // Busca issues/PRs na organização, ordenados por atualização recente
         const query = `is:pr org:TalesBusiness sort:updated-desc "${searchTerm}"`; 
         
         const encodedQuery = encodeURIComponent(query);
@@ -86,6 +87,7 @@ export const MyPullRequestsCard = () => {
         const data = await response.json();
         const allPrs = data.items || [];
 
+        // Filtra apenas os PRs criados pelos Templates de Infra
         const filteredPrs = allPrs.filter((pr: PR) => 
             pr.title.startsWith("Infra: ")
         );
@@ -104,11 +106,12 @@ export const MyPullRequestsCard = () => {
   }, [config, fetchApi, identityApi, catalogApi]);
 
   const getRepoDetails = (apiUrl: string) => {
+    // Ex: https://api.github.com/repos/TalesBusiness/infra-pessoal/issues/123
     const parts = apiUrl.split('/');
     return { owner: parts[4], repo: parts[5] };
   };
 
-  // 🟢 NOVA FUNÇÃO: Define ícone e cor baseado no status
+  // Define ícone e cor baseado no status
   const getStatusConfig = (pr: PR) => {
     if (pr.state === 'open') {
         return { 
@@ -125,7 +128,7 @@ export const MyPullRequestsCard = () => {
     }
     // Se está fechado e não tem merge, foi cancelado
     return { 
-        icon: <CancelIcon style={{ color: '#ff3838' }} />, // Cinza
+        icon: <CancelIcon style={{ color: '#ff3838' }} />, // Vermelho/Cinza
         text: 'Cancelado'
     };
   };
@@ -159,9 +162,11 @@ export const MyPullRequestsCard = () => {
               <React.Fragment key={pr.id}>
                 <ListItem 
                   button 
-                  component={Link}
-                  to={`/deployment-status/${owner}/${repo}/${pr.number}`}
+                  // CORREÇÃO: 'as any' resolve o conflito de tipagem do MUI com o Link
+                  component={Link as any}
+                  to={`https://github.com/${owner}/${repo}/pull/${pr.number}`}
                   className={classes.item}
+                  target="_blank" // Abre o PR no GitHub em nova aba
                 >
                   {/* Ícone de Status colorido com Tooltip */}
                   <Tooltip title={status.text} arrow>
@@ -180,7 +185,7 @@ export const MyPullRequestsCard = () => {
                     secondary={
                         <span style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span>{repo} • #{pr.number}</span>
-                            <span>{status.text}</span>
+                            <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>{status.text}</span>
                         </span>
                     }
                   />
