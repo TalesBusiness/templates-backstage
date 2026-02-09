@@ -1,141 +1,75 @@
-name: Terraform Pipeline
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: sqs-sns-pessoal-aprovacao
+  title: "AWS SQS+SNS com PR e Aprovação"
+  description: "Cria um PR para infraestrutura Pub/Sub (SQS/SNS)."
+  tags:
+    - aws
+    - sqs
+    - sns
+  annotations:
+    github.com/project-slug: TalesBusiness/infra-pessoal
+spec:
+  owner: team-devops
+  type: service
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
+  parameters:
+    - title: "Configurações do Recurso"
+      required: [component_id, region]
+      properties:
+        component_id:
+          title: "Nome do Recurso"
+          type: string
+          description: "Nome base para a Fila e o Tópico (ex: pagamentos-events)"
+          ui:autofocus: true
+        
+        region:
+          title: "Região AWS"
+          type: string
+          description: "Região onde o recurso será criado"
+          enum:
+            - us-east-1
+            - sa-east-1
+          default: us-east-1
 
-permissions:
-  id-token: write      # Necessário para AWS OIDC
-  contents: read
-  pull-requests: write # Necessário para comentar no PR
+  steps:
+    - id: fetch-base
+      name: Gerar Arquivos Terraform
+      action: fetch:template
+      input:
+        url: ./
+        # Define onde salvar no repo de destino
+        targetPath: ./sqs-${{ parameters.component_id }}
+        values:
+          component_id: ${{ parameters.component_id }}
+          region: ${{ parameters.region }}
 
-env:
-  AWS_REGION: us-east-1
-  # TF_BACKEND_CONFIG: "bucket=meu-bucket-tfstate" 
+    - id: log-policy
+      name: Validando Parâmetros
+      action: debug:log
+      input:
+        message: "Iniciando provisionamento de ${{ parameters.component_id }} em ${{ parameters.region }}"
 
-jobs:
-  terraform:
-    name: Terraform
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 2 # Necessário para o git diff funcionar no push
-
-      # ------------------------------------------------------------------------
-      # 🔎 SMART DETECTION: Identifica a pasta do recurso (Backstage ou Manual)
-      # ------------------------------------------------------------------------
-      - name: Detect Terraform Directory
-        id: context
-        run: |
-          echo "🔍 Detectando diretório de trabalho..."
+    - id: publish-pr
+      name: Criar Pull Request
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com?repo=infra-pessoal&owner=TalesBusiness
+        branchName: feature/sqs-${{ parameters.component_id }}
+        title: "Infra: Criação SQS/SNS ${{ parameters.component_id }}"
+        description: |
+          # Solicitação de Provisionamento Pub/Sub
           
-          # CASO 1: É um Pull Request? Tenta ler a anotação do Backstage
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            PR_BODY="${{ github.event.pull_request.body }}"
-            # Regex para capturar if [[ "$PR_BODY" =~ \<\!--\ tf-path:\ (.*)\ --\> ]]; then
-              TF_DIR="${BASH_REMATCH[1]}"
-              echo "✅ Tag do Backstage encontrada! Pasta: $TF_DIR"
-              echo "tf_dir=$TF_DIR" >> $GITHUB_OUTPUT
-            else
-              echo "⚠️ Nenhuma tag do Backstage encontrada. Assumindo raiz ou configuração manual."
-              echo "tf_dir=." >> $GITHUB_OUTPUT
-            fi
-          
-          # CASO 2: É um Push na Main? Detecta qual pasta foi alterada
-          elif [ "${{ github.event_name }}" == "push" ]; then
-             # Pega o diretório do primeiro arquivo .tf alterado
-             CHANGED_DIR=$(git diff --name-only HEAD~1 HEAD | grep '\.tf$' | head -n 1 | xargs dirname)
-             
-             if [ -n "$CHANGED_DIR" ] && [ "$CHANGED_DIR" != "." ]; then
-                echo "✅ Alteração detectada via Git Diff! Pasta: $CHANGED_DIR"
-                echo "tf_dir=$CHANGED_DIR" >> $GITHUB_OUTPUT
-             else
-                echo "⚠️ Nenhuma alteração específica detectada. Usando raiz."
-                echo "tf_dir=." >> $GITHUB_OUTPUT
-             fi
-          else
-            echo "tf_dir=." >> $GITHUB_OUTPUT
-          fi
+          **Recurso:** ${{ parameters.component_id }}
+          **Região:** ${{ parameters.region }}
+          **Solicitante:** @${{ user.entity.metadata.name }}
 
-      # 1. Configurar Credenciais AWS
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      # 2. Instalar Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.0
-
-      # 3. Inicializar (Usa a pasta detectada)
-      - name: Terraform Init
-        id: init
-        working-directory: ${{ steps.context.outputs.tf_dir }}
-        run: terraform init
-
-      # 4. Validar Sintaxe
-      - name: Terraform Validate
-        id: validate
-        working-directory: ${{ steps.context.outputs.tf_dir }}
-        run: terraform validate -no-color
-
-      # 5. PLAN (Apenas PR)
-      - name: Terraform Plan
-        id: plan
-        if: github.event_name == 'pull_request'
-        working-directory: ${{ steps.context.outputs.tf_dir }}
-        run: terraform plan -no-color -input=false
-        continue-on-error: true
-
-      # 6. Comentar no PR
-      - name: Update PR with Plan
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-          TARGET_DIR: ${{ steps.context.outputs.tf_dir }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Terraform Plan 📖
-            **Diretório Alvo:** \`${process.env.TARGET_DIR}\`
-            
-            | Init | Validate | Plan |
-            | :---: | :---: | :---: |
-            | \`${{ steps.init.outcome }}\` | \`${{ steps.validate.outcome }}\` | \`${{ steps.plan.outcome }}\` |
-
-            <details><summary>📄 Ver Output do Plan</summary>
-
-            \`\`\`hcl
-            ${process.env.PLAN}
-            \`\`\`
-
-            </details>
-
-            *Pusher: @${{ github.actor }}*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            })
-
-      # 7. APPLY (Apenas Merge na Main)
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        working-directory: ${{ steps.context.outputs.tf_dir }}
-        run: terraform apply -auto-approve -input=false
+          ---
+          🤖 **Metadados de Automação**
+          output:
+    links:
+      - title: "🚀 Acessar Pull Request"
+        url: ${{ steps['publish-pr'].output.remoteUrl }}
+      - title: "📂 Ver Repositório"
+        url: https://github.com/TalesBusiness/infra-pessoal
