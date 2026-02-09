@@ -39,7 +39,6 @@ spec:
       action: fetch:template
       input:
         url: ./content 
-        # IMPORTANTE: Define uma pasta específica para este recurso
         targetPath: ./s3-${{ parameters.name }}
         values:
           name: ${{ parameters.name }}
@@ -65,8 +64,7 @@ spec:
           
           ---
           🤖 **Metadados de Automação**
-          # CORREÇÃO: 'output' deve estar alinhado verticalmente com 'steps' e 'parameters'
-  output:
+          output:
     links:
       - title: "🚀 Acessar Pull Request"
         url: ${{ steps['publish-pr'].output.remoteUrl }}
