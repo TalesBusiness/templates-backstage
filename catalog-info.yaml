@@ -16,3 +16,17 @@ spec:
   type: service
   lifecycle: production
   owner: team-devops
+  providesApis:
+    - auth-api
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: auth-api
+  description: API description of the auth-api interface
+spec:
+  type: openapi
+  lifecycle: production
+  owner: team-devops
+  apiProvidedBy:
+    - component:auth-service
