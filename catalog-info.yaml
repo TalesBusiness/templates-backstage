@@ -1,32 +1,36 @@
-apiVersion: backstage.io/v1alpha1 # Atualizado para v1alpha1 (padrão estável para Component)
+apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: auth-service
-  description: Authentication service
+  description: "Authentication and Authorization service"
+  annotations:
+    # Vincula o serviço ao repositório para métricas e logs funcionarem
+    github.com/project-slug: TalesBusiness/auth-service 
+    backstage.io/techdocs-ref: dir:.
   tags:
-    - authentication
+    - python
     - security
-    - javascript
-  links:
-    - url: https://google.com
-      title: Admin Dashboard
-      icon: dashboard
-      type: admin-dashboard
+    - auth
 spec:
   type: service
   lifecycle: production
   owner: team-devops
+  system: security-system # Agrupa serviços relacionados
   providesApis:
     - auth-api
+  # Exemplo de mapeamento de dependências
+  dependsOn:
+    - resource:default/auth-db # Depende de um banco
+    - component:default/api-gateway # Depende do gateway
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
   name: auth-api
-  description: API description of the auth-api interface
+  description: Interface OpenAPI para o serviço de autenticação
 spec:
   type: openapi
   lifecycle: production
   owner: team-devops
-  apiProvidedBy:
-    - component:auth-service
+  definition:
+    $text: https://github.com/TalesBusiness/auth-service/blob/main/openapi.yaml
