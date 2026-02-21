@@ -1,0 +1,216 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-python-api-template
+  title: Python API Template (Completo com Docs & Deps)
+  description: Cria uma API em Python exigindo documentação e mapeamento de dependências.
+  tags:
+    - python
+    - docs-required
+    - dependencies
+spec:
+  owner: user:default/jmsgitadmin
+  type: service
+  parameters:
+    # 1. Informações Iniciais
+    - title: Informações Básicas
+      required:
+        - app_name
+        - owner
+        - description
+      properties:
+        app_name:
+          title: Nome do Projeto
+          type: string
+          description: Insira o nome do projeto (ex: payment-api).
+          pattern: '^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*$'
+          ui:field: EntityNamePicker
+        description:
+          title: Descrição Curta
+          type: string
+          description: Resumo de uma linha para o catálogo.
+          minLength: 10
+        owner:
+          title: Time Responsável (Owner)
+          type: string
+          description: Selecione o time dono deste serviço.
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: Group # Mudado para Group para seguir o padrão de times
+
+    # 2. DOCUMENTAÇÃO EXIGIDA (Docs like Code)
+    - title: Documentação Obrigatória
+      required:
+        - technical_summary
+        - architecture_desc
+      properties:
+        technical_summary:
+          title: Resumo Técnico Inicial
+          type: string
+          description: Explique brevemente o que este serviço resolve tecnicamente.
+          ui:widget: textarea
+          ui:options:
+            rows: 5
+        architecture_desc:
+          title: Descrição da Arquitetura
+          type: string
+          description: Descreva como os dados fluem ou quais bancos ele acessa.
+          ui:widget: textarea
+
+    # 3. MAPEAMENTO DE DEPENDÊNCIAS (Relações)
+    - title: Relações e Dependências
+      description: Ajude-nos a mapear o grafo de dependências da empresa.
+      properties:
+        depends_on:
+          title: Depende de quais serviços?
+          type: array
+          description: Selecione os serviços que esta nova API irá consumir.
+          items:
+            type: string
+            ui:field: EntityPicker
+            ui:options:
+              catalogFilter:
+                kind: Component
+        consumed_by:
+          title: Consumido por quais serviços?
+          type: array
+          description: Selecione os serviços que você já sabe que chamarão esta API.
+          items:
+            type: string
+            ui:field: EntityPicker
+            ui:options:
+              catalogFilter:
+                kind: Component
+
+    # 4. Questionário para Tipo de Projeto
+    - title: Tipo de Projeto
+      required:
+        - project_type
+      properties:
+        project_type:
+          title: Tipo de Projeto
+          type: string
+          description: Selecione o tipo de projeto.
+          enum:
+            - ETL_CONSUMO_API_EXTERNA
+            - ETL_BANCO_DE_DADOS
+            - WEB_SCRAPPING_PYTHON
+            - STEP_FUNCTIONS
+            - API_REST
+          enumNames:
+            - 'ETL Para consumo de API externa'
+            - 'ETL para bancos de dados'
+            - 'WEB Scrapping em python'
+            - 'Step Functions'
+            - 'API REST - Microsservicos'
+
+    # 5. Configurações API REST (Condicional)
+    - title: Detalhes da API REST
+      dependencies:
+        project_type:
+          if:
+            properties:
+              project_type:
+                const: API_REST
+          then:
+            properties:
+              db_criado:
+                title: O banco de dados foi criado?
+                type: string
+                ui:widget: radio
+                enum: [Y, N]
+                enumNames: ['SIM', 'NÃO']
+              connection_string:
+                title: As connections string foram definidas?
+                type: string
+                ui:widget: radio
+                enum: [Y, N]
+                enumNames: ['SIM', 'NÃO']
+              custom_route:
+                title: Terá rota customizada no Gateway?
+                type: string
+                ui:widget: radio
+                enum: [Y, N]
+                enumNames: ['SIM', 'NÃO']
+            required:
+              - db_criado
+              - connection_string
+
+  steps:
+    - id: template
+      name: Fetch Skeleton + Injeção de Dados
+      action: fetch:template
+      input:
+        url: .
+        copyWithoutRender:
+          - "**/.github/workflows/*"
+        values:
+          app_name: ${{ parameters.app_name }}
+          description: ${{ parameters.description }}
+          technical_summary: ${{ parameters.technical_summary }}
+          architecture_desc: ${{ parameters.architecture_desc }}
+          depends_on: ${{ parameters.depends_on }}
+          consumed_by: ${{ parameters.consumed_by }}
+          owner: ${{ parameters.owner }}
+          repoUrl: 'github.com?repo=${{ parameters.app_name }}&owner=GitJMSeguradora'
+          namespace: default
+
+    - id: Rename
+      name: Organizando catalog-info
+      action: fs:rename
+      input:
+        files:
+          - from: ./cataloginfo/catalog-info.yaml
+            to: ./cataloginfo/catalog-info-${{ parameters.app_name }}.yaml
+
+    - id: publish
+      name: Criando Repositório com Docs e Skeleton
+      action: publish:github
+      input:
+        defaultBranch: 'master'
+        description: ${{ parameters.app_name }}
+        repoUrl: 'github.com?repo=${{ parameters.app_name }}&owner=GitJMSeguradora'
+        repoVisibility: 'private'
+        deleteBranchOnMerge: true
+        sourcePath: ./skeleton/${{ parameters.project_type }}
+        gitCommitMessage: "feat: initial boilerplate with docs and deps"
+
+    - id: run-script-konga
+      name: Provisionando API Gateway
+      action: custom:run:bashScript
+      if: ${{ parameters.project_type == 'API_REST' }}
+      input:
+        scriptPath: './scripts/kong/prepare_kong.sh'
+        additionalParams:
+          - ${{ parameters.app_name }}
+          - ${{ parameters.custom_route }}
+          - 'Y'
+          - ${{ parameters.rate_limit if parameters.rate_limit else 'N' }}
+          - '60'
+
+    - id: register
+      name: Registrando no Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
+
+    - id: notify
+      name: Notificando Administradores
+      action: notification:send
+      input:
+        recipients: entity
+        entityRefs:
+          - group:default/backstage-super-admin
+        title: 'Novo serviço Python criado'
+        info: 'O serviço ${{ parameters.app_name }} foi criado por ${{ user.entity.metadata.name }} com documentação completa.'
+        severity: 'normal'
+
+  output:
+    links:
+      - title: Repositório GitHub
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Visualizar no Catálogo
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
