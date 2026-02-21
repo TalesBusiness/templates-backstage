@@ -4,8 +4,9 @@ metadata:
   name: auth-service
   description: "Authentication and Authorization service"
   annotations:
-    # Vincula o serviço ao repositório para métricas e logs funcionarem
-    github.com/project-slug: TalesBusiness/auth-service 
+    # CRÍTICO: slug correto para habilitar a aba de Logs e Métricas que criamos
+    github.com/project-slug: TalesBusiness/auth-service
+    # Habilita a documentação via TechDocs
     backstage.io/techdocs-ref: dir:.
   tags:
     - python
@@ -15,22 +16,30 @@ spec:
   type: service
   lifecycle: production
   owner: team-devops
-  system: security-system # Agrupa serviços relacionados
+  system: security-system
+  
+  # API que este serviço disponibiliza para outros
   providesApis:
     - auth-api
-  # Exemplo de mapeamento de dependências
+
+  # Mapeamento de Dependências (Grafo de Relações)
   dependsOn:
-    - resource:default/auth-db # Depende de um banco
-    - component:default/api-gateway # Depende do gateway
+    - resource:default/auth-db
+    - component:default/api-gateway
+
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
   name: auth-api
   description: Interface OpenAPI para o serviço de autenticação
+  annotations:
+    # Permite que o Swagger UI renderize a documentação da API
+    backstage.io/view-url: https://github.com/TalesBusiness/auth-service/blob/main/openapi.yaml
 spec:
   type: openapi
   lifecycle: production
   owner: team-devops
   definition:
+    # O Backstage lerá o conteúdo do arquivo YAML diretamente do GitHub
     $text: https://github.com/TalesBusiness/auth-service/blob/main/openapi.yaml
